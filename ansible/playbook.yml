@@ -1,0 +1,130 @@
+---
+- name: Deploy application with HTTPS
+  hosts: web
+  become: true
+
+  vars:
+    app_container_name: devops-example-app
+    app_image: voitov/devops-example-app:latest
+    app_port: 8080
+    domain_name: voitov.online
+    certbot_email: "admin@voitov.online"
+    datadog_site: datadoghq.eu
+
+  tasks:
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: Install packages
+      ansible.builtin.apt:
+        name:
+          - docker.io
+          - python3-pip
+          - nginx
+          - certbot
+          - python3-certbot-nginx
+        state: present
+
+    - name: Install Docker SDK for Python
+      ansible.builtin.pip:
+        name: docker
+        executable: pip3
+
+    - name: Enable and start Docker
+      ansible.builtin.systemd:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: Pull application image
+      community.docker.docker_image:
+        name: "{{ app_image }}"
+        source: pull
+        force_source: true
+
+    - name: Run application container
+      community.docker.docker_container:
+        name: "{{ app_container_name }}"
+        image: "{{ app_image }}"
+        state: started
+        restart_policy: always
+        recreate: true
+        published_ports:
+          - "{{ app_port }}:3000"
+
+    - name: Configure nginx reverse proxy
+      ansible.builtin.copy:
+        dest: /etc/nginx/sites-available/project77
+        mode: "0644"
+        content: |
+          server {
+              listen 80;
+              server_name {{ domain_name }};
+
+              location / {
+                  proxy_pass http://127.0.0.1:{{ app_port }};
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+              }
+          }
+
+    - name: Enable nginx site
+      ansible.builtin.file:
+        src: /etc/nginx/sites-available/project77
+        dest: /etc/nginx/sites-enabled/project77
+        state: link
+        force: true
+
+    - name: Remove default nginx site
+      ansible.builtin.file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+
+    - name: Reload nginx
+      ansible.builtin.systemd:
+        name: nginx
+        state: reloaded
+        enabled: true
+
+    - name: Issue Let's Encrypt certificate
+      ansible.builtin.command:
+        cmd: >
+          certbot --nginx
+          --non-interactive
+          --agree-tos
+          --email {{ certbot_email }}
+          -d {{ domain_name }}
+          --redirect
+      args:
+        creates: "/etc/letsencrypt/live/{{ domain_name }}/fullchain.pem"
+
+    - name: Install Datadog agent
+      ansible.builtin.shell: |
+        DD_API_KEY="{{ datadog_api_key }}" DD_SITE="{{ datadog_site }}" DD_AGENT_MAJOR_VERSION=7 bash -c "$(curl -L https://install.datadoghq.com/scripts/install_script_agent7.sh)"
+      args:
+        creates: /etc/datadog-agent/datadog.yaml
+      ignore_errors: true
+
+    - name: Configure Datadog http_check
+      ansible.builtin.copy:
+        dest: /etc/datadog-agent/conf.d/http_check.d/conf.yaml
+        mode: "0644"
+        content: |
+          instances:
+            - name: project77-https-check
+              url: https://{{ domain_name }}
+              timeout: 5
+              tags:
+                - project:project-77
+                - service:web
+      ignore_errors: true
+
+    - name: Restart Datadog agent
+      ansible.builtin.systemd:
+        name: datadog-agent
+        state: restarted
+        enabled: true
+      ignore_errors: true

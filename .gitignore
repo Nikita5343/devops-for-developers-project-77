@@ -1,4 +1,5 @@
 .terraform/
+terraform/.terraform/
 *.tfstate
 *.tfstate.*
 *.tfvars
@@ -6,4 +7,21 @@
 *.backup
 *.retry
 
-ansible/*.tmp
+.backend.env.tmp
+terraform/secret.auto.tfvars
+ansible/inventory.ini
+
+terraform/secret.auto.tfvars
+*.tar.gz
+# terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+secret.auto.tfvars
+
+# certs
+*.pem
+*.key
+
+# python
+__pycache__/
