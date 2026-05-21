@@ -1,7 +1,7 @@
 TERRAFORM_DIR=terraform
 ANSIBLE_DIR=ansible
 
-TF_VARS_VAULT=$(ANSIBLE_DIR)/terraform-secrets.auto.tfvars
+TF_VARS_VAULT=$(ANSIBLE_DIR)/terraform-secrets.yml
 BACKEND_VAULT=$(ANSIBLE_DIR)/backend.env
 ANSIBLE_VARS=$(ANSIBLE_DIR)/datadog-vars.yml
 
@@ -42,3 +42,5 @@ destroy: tfvars
 clean:
 	rm -f $(TERRAFORM_DIR)/secret.auto.tfvars
 	rm -f .backend.env.tmp
+	rm -f $(TERRAFORM_DIR)/tfoutput.json
+	rm -f $(ANSIBLE_DIR)/inventory.ini
