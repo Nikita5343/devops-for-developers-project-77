@@ -5,7 +5,7 @@ provider "registry.terraform.io/datadog/datadog" {
   version     = "3.91.0"
   constraints = "~> 3.91"
   hashes = [
-    "h1:DSnuBJX+FsnD/SimxGCZeMF9QzW3ChVunEyKaOawR6A=",
+    "h1:apeGnbBQdHFdCrFu27gAS/MQV6OX+6mPQ9/RqwhVNM4=",
     "zh:3c5c80c169b11636b2982aefce67aaffb830cc775a810e508b79ac9f37e65de8",
     "zh:46350a77f20f7606528b497746f0b6a24aa8d259a959b2ac35446ae63aefc313",
     "zh:5d6118816157312673a48882aa8ebc8efd71601a49d61fe41b622e1bf45e32ab",
@@ -26,7 +26,7 @@ provider "registry.terraform.io/datadog/datadog" {
 provider "registry.terraform.io/yandex-cloud/yandex" {
   version = "0.204.0"
   hashes = [
-    "h1:hJlGYxW8IkveT0NS5YDLEuI21tRfI6QNHa4DGl0nI10=",
+    "h1:j5OdovQRALNxk2l7Tc7C6IKwT0+Q6wLAVr9h15hM1hc=",
     "zh:1d9e02b6f35dc2e30e8b1eb3d521df91e499b4848514a266442a46a56977de2b",
     "zh:2100f26520a6f34abee63417e2dea082e79564b7f9d83e35ecb2046385611432",
     "zh:2ec006e2be826c8784b066240fe2cde229c72f3fbea514e64b5d59042a06743e",
