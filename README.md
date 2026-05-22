@@ -11,7 +11,7 @@ Infrastructure project with Terraform and Ansible.
 
 The project creates:
 
-- 2 virtual machines in Yandex Cloud
+- 2 virtual  machines in Yandex Cloud
 - Application Load Balancer
 - HTTPS listener
 - Cloud DNS zone for `voitov.online`
