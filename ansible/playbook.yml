@@ -71,25 +71,48 @@
               }
           }
 
-    - name: Enable nginx site
+    - name: Enable nginx application site
       ansible.builtin.file:
         src: /etc/nginx/sites-available/project77
         dest: /etc/nginx/sites-enabled/project77
         state: link
         force: true
 
+    - name: Configure load balancer healthcheck site
+      ansible.builtin.copy:
+        dest: /etc/nginx/sites-enabled/healthcheck
+        mode: "0644"
+        content: |
+          server {
+              listen 80 default_server;
+              server_name _;
+
+              location / {
+                  return 200 "ok\n";
+              }
+          }
+
     - name: Remove default nginx site
       ansible.builtin.file:
         path: /etc/nginx/sites-enabled/default
         state: absent
 
-    - name: Reload nginx
+    - name: Test nginx config before SSL
+      ansible.builtin.command: nginx -t
+      changed_when: false
+
+    - name: Reload nginx before SSL
       ansible.builtin.systemd:
         name: nginx
         state: reloaded
         enabled: true
 
-    - name: Issue Let's Encrypt certificate
+    - name: Check existing Let's Encrypt certificate
+      ansible.builtin.stat:
+        path: "/etc/letsencrypt/live/{{ domain_name }}/fullchain.pem"
+      register: letsencrypt_certificate
+
+    - name: Issue Let's Encrypt certificate if missing
       ansible.builtin.command:
         cmd: >
           certbot --nginx
@@ -98,8 +121,22 @@
           --email {{ certbot_email }}
           -d {{ domain_name }}
           --redirect
-      args:
-        creates: "/etc/letsencrypt/live/{{ domain_name }}/fullchain.pem"
+      when: not letsencrypt_certificate.stat.exists
+
+    - name: Reinstall existing Let's Encrypt certificate into nginx
+      ansible.builtin.command:
+        cmd: "certbot install --cert-name {{ domain_name }}"
+      when: letsencrypt_certificate.stat.exists
+
+    - name: Test nginx config after SSL
+      ansible.builtin.command: nginx -t
+      changed_when: false
+
+    - name: Restart nginx after SSL
+      ansible.builtin.systemd:
+        name: nginx
+        state: restarted
+        enabled: true
 
     - name: Install Datadog agent
       ansible.builtin.shell: |
