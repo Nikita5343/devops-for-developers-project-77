@@ -1,46 +1,35 @@
 TERRAFORM_DIR=terraform
 ANSIBLE_DIR=ansible
 
-TF_VARS_VAULT=$(ANSIBLE_DIR)/terraform-secrets.yml
-BACKEND_VAULT=$(ANSIBLE_DIR)/backend.env
-ANSIBLE_VARS=$(ANSIBLE_DIR)/datadog-vars.yml
+.PHONY: init fmt validate plan apply destroy inventory requirements deploy clean
 
 init:
-	ansible-vault view $(BACKEND_VAULT) > .backend.env.tmp
-	bash -c 'source .backend.env.tmp && cd $(TERRAFORM_DIR) && terraform init -reconfigure'
-	rm -f .backend.env.tmp
+	make -C $(TERRAFORM_DIR) init
 
 fmt:
-	cd $(TERRAFORM_DIR) && terraform fmt
+	make -C $(TERRAFORM_DIR) fmt
 
 validate:
-	cd $(TERRAFORM_DIR) && terraform validate
+	make -C $(TERRAFORM_DIR) validate
 
-tfvars:
-	ansible-vault view $(TF_VARS_VAULT) > $(TERRAFORM_DIR)/secret.auto.tfvars
+plan:
+	make -C $(TERRAFORM_DIR) plan
 
-plan: tfvars
-	cd $(TERRAFORM_DIR) && terraform plan
+apply:
+	make -C $(TERRAFORM_DIR) apply
 
-apply: tfvars
-	cd $(TERRAFORM_DIR) && terraform apply -auto-approve
+destroy:
+	make -C $(TERRAFORM_DIR) destroy
 
 inventory:
-	cd $(TERRAFORM_DIR) && terraform output -json > tfoutput.json
-	cd $(ANSIBLE_DIR) && python3 ../scripts/generate_inventory.py
-	rm -f $(TERRAFORM_DIR)/tfoutput.json
+	make -C $(ANSIBLE_DIR) inventory
 
 requirements:
-	ansible-galaxy collection install -r $(ANSIBLE_DIR)/requirements.yml
+	make -C $(ANSIBLE_DIR) requirements
 
-deploy: inventory requirements
-	ansible-playbook -i $(ANSIBLE_DIR)/inventory.ini $(ANSIBLE_DIR)/playbook.yml -e "@$(ANSIBLE_VARS)" --ask-vault-pass
-
-destroy: tfvars
-	cd $(TERRAFORM_DIR) && terraform destroy -auto-approve
+deploy:
+	make -C $(ANSIBLE_DIR) deploy
 
 clean:
-	rm -f $(TERRAFORM_DIR)/secret.auto.tfvars
-	rm -f .backend.env.tmp
-	rm -f $(TERRAFORM_DIR)/tfoutput.json
-	rm -f $(ANSIBLE_DIR)/inventory.ini
+	make -C $(TERRAFORM_DIR) clean
+	make -C $(ANSIBLE_DIR) clean

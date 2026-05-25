@@ -3,13 +3,8 @@
   hosts: web
   become: true
 
-  vars:
-    app_container_name: devops-example-app
-    app_image: voitov/devops-example-app:latest
-    app_port: 8080
-    domain_name: voitov.online
-    certbot_email: "admin@voitov.online"
-    datadog_site: datadoghq.eu
+  roles:
+    - role: datadog.datadog
 
   tasks:
     - name: Update apt cache
@@ -137,31 +132,3 @@
         name: nginx
         state: restarted
         enabled: true
-
-    - name: Install Datadog agent
-      ansible.builtin.shell: |
-        DD_API_KEY="{{ datadog_api_key }}" DD_SITE="{{ datadog_site }}" DD_AGENT_MAJOR_VERSION=7 bash -c "$(curl -L https://install.datadoghq.com/scripts/install_script_agent7.sh)"
-      args:
-        creates: /etc/datadog-agent/datadog.yaml
-      ignore_errors: true
-
-    - name: Configure Datadog http_check
-      ansible.builtin.copy:
-        dest: /etc/datadog-agent/conf.d/http_check.d/conf.yaml
-        mode: "0644"
-        content: |
-          instances:
-            - name: project77-https-check
-              url: https://{{ domain_name }}
-              timeout: 5
-              tags:
-                - project:project-77
-                - service:web
-      ignore_errors: true
-
-    - name: Restart Datadog agent
-      ansible.builtin.systemd:
-        name: datadog-agent
-        state: restarted
-        enabled: true
-      ignore_errors: true

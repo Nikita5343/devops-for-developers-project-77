@@ -1,12 +1,18 @@
 import json
+from jinja2 import Environment, FileSystemLoader
 
 with open("../terraform/tfoutput.json") as f:
     data = json.load(f)
 
 ips = data["web_external_ips"]["value"]
 
-with open("../ansible/inventory.ini", "w") as f:
-    f.write("[web]\n")
+env = Environment(
+    loader=FileSystemLoader("../ansible/templates")
+)
 
-    for ip in ips:
-        f.write(f"{ip} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa\n")
+template = env.get_template("inventory.ini.tpl")
+
+rendered_inventory = template.render(ips=ips)
+
+with open("../ansible/inventory.ini", "w") as f:
+    f.write(rendered_inventory)

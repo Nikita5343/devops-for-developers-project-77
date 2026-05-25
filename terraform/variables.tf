@@ -65,3 +65,18 @@ variable "datadog_site" {
   type    = string
   default = "datadoghq.eu"
 }
+
+variable "db_name" {
+  type    = string
+  default = "app"
+}
+
+variable "db_user" {
+  type    = string
+  default = "app"
+}
+
+variable "db_password" {
+  type      = string
+  sensitive = true
+}
