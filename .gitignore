@@ -18,6 +18,7 @@ terraform/secret.auto.tfvars
 *.tfstate.*
 .terraform/
 secret.auto.tfvars
+.terraform.lock.hcl
 
 # certs
 *.pem
