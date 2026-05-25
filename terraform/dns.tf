@@ -10,5 +10,5 @@ resource "yandex_dns_recordset" "app" {
   name    = "${var.domain_name}."
   type    = "A"
   ttl     = 300
-  data    = [yandex_lb_network_load_balancer.web.listener[0].external_address_spec[0].address]
+  data    = [yandex_vpc_address.lb.external_ipv4_address[0].address]
 }

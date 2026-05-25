@@ -13,6 +13,14 @@ resource "yandex_vpc_subnet" "main" {
   v4_cidr_blocks = ["10.10.0.0/24"]
 }
 
+resource "yandex_vpc_address" "lb" {
+  name = "project-77-lb-ip"
+
+  external_ipv4_address {
+    zone_id = var.yc_zone
+  }
+}
+
 resource "yandex_compute_instance" "web" {
   count = var.vm_count
 
@@ -66,6 +74,7 @@ resource "yandex_lb_network_load_balancer" "web" {
 
     external_address_spec {
       ip_version = "ipv4"
+      address    = yandex_vpc_address.lb.external_ipv4_address[0].address
     }
   }
 
@@ -76,6 +85,7 @@ resource "yandex_lb_network_load_balancer" "web" {
 
     external_address_spec {
       ip_version = "ipv4"
+      address    = yandex_vpc_address.lb.external_ipv4_address[0].address
     }
   }
 
