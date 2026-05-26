@@ -1,0 +1,2 @@
+[web]
+{{ inventory_hosts }}

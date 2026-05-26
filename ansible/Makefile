@@ -1,17 +1,15 @@
-ANSIBLE_VARS=group_vars/all.yml
+ANSIBLE_VAULT=group_vars/vault.yml
 
 .PHONY: inventory requirements deploy clean
 
 inventory:
-	cd ../terraform && terraform output -json > tfoutput.json
-	python3 ../scripts/generate_inventory.py
-	rm -f ../terraform/tfoutput.json
+	cd ../terraform && terraform output -raw inventory > ../ansible/inventory.ini
 
 requirements:
-	ansible-galaxy collection install -r requirements.yml
+	ansible-galaxy install -r requirements.yml
 
 deploy: inventory requirements
-	ansible-playbook -i inventory.ini playbook.yml -e "@$(ANSIBLE_VARS)" --ask-vault-pass
+	ansible-playbook -i inventory.ini playbook.yml -e "@$(ANSIBLE_VAULT)" --ask-vault-pass
 
 clean:
 	rm -f inventory.ini

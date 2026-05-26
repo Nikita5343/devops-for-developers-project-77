@@ -1,4 +1,3 @@
-TF_VARS_VAULT=../ansible/terraform-secrets.yml
 BACKEND_VAULT=../ansible/backend.env
 
 .PHONY: init fmt validate tfvars plan apply destroy clean
@@ -15,7 +14,7 @@ validate:
 	terraform validate
 
 tfvars:
-	ansible-vault view $(TF_VARS_VAULT) > secret.auto.tfvars
+	cd ../ansible && ansible-playbook generate_tfvars.yml --ask-vault-pass
 
 plan: tfvars
 	terraform plan

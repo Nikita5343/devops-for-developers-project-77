@@ -1,0 +1,16 @@
+---
+- name: Generate Terraform variables file
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars_files:
+    - group_vars/all.yml
+    - group_vars/vault.yml
+
+  tasks:
+    - name: Generate secret.auto.tfvars
+      ansible.builtin.template:
+        src: templates/secret.auto.tfvars.j2
+        dest: ../terraform/secret.auto.tfvars
+        mode: "0600"

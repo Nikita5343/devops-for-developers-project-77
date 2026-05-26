@@ -1,7 +1,7 @@
 TERRAFORM_DIR=terraform
 ANSIBLE_DIR=ansible
 
-.PHONY: init fmt validate plan apply destroy inventory requirements deploy clean
+.PHONY: init fmt validate tfvars plan apply destroy inventory requirements deploy clean
 
 init:
 	make -C $(TERRAFORM_DIR) init
@@ -11,6 +11,9 @@ fmt:
 
 validate:
 	make -C $(TERRAFORM_DIR) validate
+
+tfvars:
+	make -C $(TERRAFORM_DIR) tfvars
 
 plan:
 	make -C $(TERRAFORM_DIR) plan

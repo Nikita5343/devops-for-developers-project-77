@@ -15,3 +15,13 @@ output "web_internal_ips" {
 output "app_url" {
   value = "https://${var.domain_name}"
 }
+
+output "inventory" {
+  value = join("\n", [
+    "[web]",
+    join("\n", [
+      for ip in yandex_compute_instance.web[*].network_interface[0].nat_ip_address :
+      "${ip} ansible_user=ubuntu ansible_ssh_private_key_file=~/.ssh/id_rsa"
+    ])
+  ])
+}
